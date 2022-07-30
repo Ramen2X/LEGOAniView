@@ -13,5 +13,6 @@ public:
 private:
 	int actorsNum;
 	bool ParseActors();
+	bool ParseKeyframes(Actor actor);
 	void OutputData();
 };

@@ -72,7 +72,68 @@ bool LEGOAniView::ParseActors()
 	ani.sceneName = vba;
 	delete vba;
 
+	aniFile.seekg(12, std::ios::cur);
+
+	// We currently don't know which components belong to which actors, so
+	// only process keyframes that affect the entire actor
+	for (int i = 0; i < actorsNum; i++) {
+		ParseKeyframes(ani.actors[i]);
+	}
 	return true;
+}
+
+bool LEGOAniView::ParseKeyframes(Actor actor)
+{
+	char ba[4];
+	int nameLength;
+	int keyframeAmt;
+
+	// Get length of actor/component name
+	aniFile.read(ba, 4);
+	nameLength = *(int*)ba;
+
+	// Get actor/component name
+	char* vba = new char[nameLength + 1];
+	aniFile.read(vba, nameLength);
+	vba[nameLength] = '\0';
+
+	// Does this actor/component match the one that was passed?
+	if (actor.name == vba) {
+		// TODO: Loop this to read all keyframes
+
+		// Amount of keyframes
+		aniFile.read(ba, 2);
+		keyframeAmt = *(int*)ba;
+
+		Keyframe kf{};
+
+		// Position of this keyframe
+		aniFile.read(ba, 2);
+		kf.ms = *(int*)ba;
+		
+		// Skip unknown 0x01 value
+		aniFile.seekg(2, std::ios::cur);
+
+		// X Position
+		aniFile.read(ba, 4);
+		kf.x_pos = *(float*)ba;
+
+		// Y Position
+		aniFile.read(ba, 4);
+		kf.y_pos = *(float*)ba;
+
+		// Z Position
+		aniFile.read(ba, 4);
+		kf.z_pos = *(float*)ba;
+
+		// Push this keyframe to vector in actor object
+		actor.keyframes.push_back(kf);
+		delete vba;
+
+		return true;
+	}
+	delete vba;
+	return false;
 }
 
 void LEGOAniView::OutputData()
