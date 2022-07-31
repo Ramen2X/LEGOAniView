@@ -3,22 +3,17 @@
 
 bool LEGOAniView::ParseData(char* inputFile)
 {
-	aniFile.open(inputFile);
-
-	if (aniFile.is_open()) {
-		char b;
-		if (aniFile.read(&b, 1)) {
-			// All ani files seem to start with 0x11
-			if (b != 0x11) {
-				std::cout << "Invalid file specified.\n";
-				return false;
-			}
-			if (!ParseActors()) {
-				std::cout << "An error occurred while parsing actors.\n";
-				return false;
-			}
+	if (aniFile.Open(inputFile, f::File::Read)) {
+		// All ani files seem to start with 0x11
+		if (aniFile.ReadU8() != 17) {
+			std::cout << "Invalid file specified.\n";
+			return false;
 		}
-		aniFile.close();
+		if (!ParseActors()) {
+			std::cout << "An error occurred while parsing actors.\n";
+			return false;
+		}
+		aniFile.Close();
 
 		OutputData();
 		return true;
@@ -32,44 +27,36 @@ bool LEGOAniView::ParseData(char* inputFile)
 bool LEGOAniView::ParseActors()
 {
 	// Jump forward to actor index
-	aniFile.seekg(28, std::ios::beg);
+	aniFile.seek(28);
 	int nameLength;
+	std::string name;
 
 	// Number of actors in this scene
-	aniFile.read((char*)&actorsNum, sizeof(actorsNum));
+	actorsNum = aniFile.ReadU32();
 
 	for (int i = 0; i < actorsNum; i++) {
 		// Get length of actor name
-		aniFile.read((char*)&nameLength, sizeof(nameLength));
+		nameLength = aniFile.ReadU32();
 
 		// Get actor name
-		char* vba = new char[nameLength + 1];
-		aniFile.read(vba, nameLength);
-
-		// Not sure if there's a better way to add a null terminator here
-		vba[nameLength] = '\0';
+		name = std::string(aniFile.ReadBytes(nameLength).data(), nameLength);
 
 		// Append actors to vector in ani object
-		Actor actor = { vba };
+		Actor actor = { name };
 		ani.actors.push_back(actor);
-		delete vba;
 
 		// Continue to next entry
-		aniFile.seekg(4, std::ios::cur);
+		aniFile.seek(4, f::File::SeekCurrent);
 	}
 
 	// Scene name is stored directly after actors
-	aniFile.seekg(4, std::ios::cur);
-	aniFile.read((char*)&nameLength, sizeof(nameLength));
+	aniFile.seek(4, f::File::SeekCurrent);
+	nameLength = aniFile.ReadU32();
 
-	char* vba = new char[nameLength + 1];
-	aniFile.read(vba, nameLength);
-	vba[nameLength] = '\0';
+	name = std::string(aniFile.ReadBytes(nameLength).data(), nameLength);
+	ani.sceneName = name;
 
-	ani.sceneName = vba;
-	delete vba;
-
-	aniFile.seekg(12, std::ios::cur);
+	aniFile.seek(12, f::File::SeekCurrent);
 
 	// We currently don't know which components belong to which actors, so
 	// only process keyframes that affect the entire actor
@@ -83,20 +70,19 @@ bool LEGOAniView::ParseKeyframes(Actor &actor)
 {
 	int nameLength;
 	short keyframeNum;
+	std::string name;
 
 	// Get length of actor/component name
-	aniFile.read((char*)&nameLength, sizeof(nameLength));
+	nameLength = aniFile.ReadU32();
 
 	// Get actor/component name
-	char* vba = new char[nameLength + 1];
-	aniFile.read(vba, nameLength);
-	vba[nameLength] = '\0';
+	name = std::string(aniFile.ReadBytes(nameLength).data(), nameLength);
 
 	// Amount of keyframes
-	aniFile.read((char*)&keyframeNum, sizeof(keyframeNum));
+	keyframeNum = aniFile.ReadU16();
 
 	// Does this actor/component match the one that was passed?
-	if (actor.name == vba) {
+	if (actor.name == name) {
 		for (int i = 0; i < keyframeNum; i++) {
 			Keyframe kf{};
 			
@@ -104,64 +90,62 @@ bool LEGOAniView::ParseKeyframes(Actor &actor)
 			kf.type = POSITION;
 
 			// Position of this keyframe
-			aniFile.read((char*)&kf.ms, sizeof(kf.ms));
+			kf.ms = aniFile.ReadU16();
 
 			// Skip unknown 0x01 value
-			aniFile.seekg(2, std::ios::cur);
+			aniFile.seek(2, f::File::SeekCurrent);
 
 			// X Position
-			aniFile.read((char*)&kf.x_pos, sizeof(kf.x_pos));
+			kf.x_pos = aniFile.ReadFloat();
 
 			// Y Position
-			aniFile.read((char*)&kf.y_pos, sizeof(kf.y_pos));
+			kf.y_pos = aniFile.ReadFloat();
 
 			// Z Position
-			aniFile.read((char*)&kf.z_pos, sizeof(kf.z_pos));
+			kf.z_pos = aniFile.ReadFloat();
 
 			// Push this keyframe to vector in actor object
 			actor.keyframes.push_back(kf);
 		}
 		// Skip the unimplemented types for now; skip rotation
-		aniFile.read((char*)&keyframeNum, sizeof(keyframeNum));
-		aniFile.seekg(keyframeNum * 20, std::ios::cur);
+		keyframeNum = aniFile.ReadU16();
+		aniFile.seek(keyframeNum * 20, f::File::SeekCurrent);
 
 		// Skip scale
-		aniFile.read((char*)&keyframeNum, sizeof(keyframeNum));
-		aniFile.seekg(keyframeNum * 16, std::ios::cur);
+		keyframeNum = aniFile.ReadU16();
+		aniFile.seek(keyframeNum * 16, f::File::SeekCurrent);
 
 		// Skip morph
-		aniFile.read((char*)&keyframeNum, sizeof(keyframeNum));
-		aniFile.seekg(keyframeNum * 5, std::ios::cur);
+		keyframeNum = aniFile.ReadU16();
+		aniFile.seek(keyframeNum * 5, f::File::SeekCurrent);
 
 		// Skip ahead to next entry
-		aniFile.seekg(4, std::ios::cur);
+		aniFile.seek(4, f::File::SeekCurrent);
 
-		delete vba;
 		return true;
 	}
 	else {
 		// If this is not the actor/component we want, skip to the next one
-		aniFile.seekg(keyframeNum * 16, std::ios::cur);
-		aniFile.read((char*)&keyframeNum, sizeof(keyframeNum));
+		aniFile.seek(keyframeNum * 16, f::File::SeekCurrent);
+		keyframeNum = aniFile.ReadU16();
 
 		// Skip rotation
-		aniFile.seekg(keyframeNum * 20, std::ios::cur);
-		aniFile.read((char*)&keyframeNum, sizeof(keyframeNum));
+		aniFile.seek(keyframeNum * 20, f::File::SeekCurrent);
+		keyframeNum = aniFile.ReadU16();
 
 		// Skip scale
-		aniFile.seekg(keyframeNum * 16, std::ios::cur);
-		aniFile.read((char*)&keyframeNum, sizeof(keyframeNum));
+		aniFile.seek(keyframeNum * 16, f::File::SeekCurrent);
+		keyframeNum = aniFile.ReadU16();
 
 		// Skip morph
-		aniFile.seekg(keyframeNum * 5, std::ios::cur);
+		aniFile.seek(keyframeNum * 5, f::File::SeekCurrent);
 
 		// Skip ahead to next entry
-		aniFile.seekg(4, std::ios::cur);
+		aniFile.seek(4, f::File::SeekCurrent);
 	}
-	delete vba;
 
 	// Make sure we don't reach the end of the file
-	if (!aniFile.good()) {
+	if (aniFile.atEnd()) {
 		return false;
 	}
 	ParseKeyframes(actor);
