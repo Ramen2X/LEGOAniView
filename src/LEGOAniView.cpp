@@ -1,5 +1,5 @@
 ﻿#include "LEGOAniView.h"
-#include "Color.h"
+#include "./misc/Color.h"
 
 bool LEGOAniView::ParseData(char* inputFile)
 {
@@ -75,6 +75,10 @@ bool LEGOAniView::ParseKeyframes(Actor &actor)
 	// Get length of actor/component name
 	nameLength = aniFile.ReadU32();
 
+	if (aniFile.atEnd()) {
+		return false;
+	}
+
 	// Get actor/component name
 	name = std::string(aniFile.ReadBytes(nameLength).data(), nameLength);
 
@@ -83,6 +87,7 @@ bool LEGOAniView::ParseKeyframes(Actor &actor)
 
 	// Does this actor/component match the one that was passed?
 	if (actor.name == name) {
+		actorsFound++;
 		for (int i = 0; i < keyframeNum; i++) {
 			Keyframe kf{};
 			
@@ -148,8 +153,13 @@ bool LEGOAniView::ParseKeyframes(Actor &actor)
 	if (aniFile.atEnd()) {
 		return false;
 	}
-	ParseKeyframes(actor);
-	return false;
+
+	// Recurse only if we have not found all actors
+	if (actorsFound != actorsNum) {
+		ParseKeyframes(actor);
+		return false;
+	}
+	else return true;
 }
 
 void LEGOAniView::OutputData()

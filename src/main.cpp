@@ -1,5 +1,5 @@
 #include "LEGOAniView.h"
-#include "Color.h"
+#include "./misc/Color.h"
 
 int main(int argc, char* argv[])
 {

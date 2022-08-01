@@ -13,6 +13,7 @@ public:
 	bool ParseData(char* inputFile);
 private:
 	int actorsNum;
+	int actorsFound = 0;
 	bool ParseActors();
 	bool ParseKeyframes(Actor &actor);
 	void OutputData();
