@@ -3,6 +3,7 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <map>
@@ -117,6 +118,81 @@ namespace f {
         double y;
         double z;
     };
+
+    class Data
+    {
+    public:
+        inline Data()
+        {
+            data_.resize(sizeof(uint32_t));
+            memset(data_.data(), 0, data_.size());
+        }
+
+        inline Data(const uint32_t& u) { set(u); }
+        inline Data(const Vector3& u) { set(u); }
+        inline Data(const bytearray& u) { set(u); }
+        inline Data(const std::string& u)
+        {
+            data_.resize(u.size());
+            memcpy(data_.data(), u.data(), u.size());
+        }
+
+        inline operator uint32_t() const { return toU32(); }
+        inline operator const char* () const { return data(); }
+        inline operator Vector3() const { return toVector3(); }
+        inline operator bytearray() const { return data_; }
+        inline operator std::string() const { return toString(); }
+
+        inline uint16_t toU16() const { return *data_.cast<uint16_t>(); }
+        inline int16_t toS16() const { return *data_.cast<int16_t>(); }
+        inline uint32_t toU32() const { return *data_.cast<uint32_t>(); }
+        inline int32_t toS32() const { return *data_.cast<int32_t>(); }
+        inline Vector3 toVector3() const { return *data_.cast<Vector3>(); }
+        inline const char* data() const { return data_.data(); };
+        inline char* data() { return data_.data(); };
+        inline const char* c_str() const { return this->data(); };
+        inline size_t size() const { return data_.size(); }
+        inline const std::string toString() const
+        {
+            if (data_.empty()) {
+                return std::string();
+            }
+            else {
+                // Subtract 1 from size, assuming the last character is a null terminator
+                return std::string(data_.data(), std::max(size_t(0), data_.size() - 1));
+            }
+        }
+
+        inline bool operator==(int u) const
+        {
+            return get<int>() == u;
+        }
+
+        inline bool operator==(uint32_t u) const
+        {
+            return get<uint32_t>() == u;
+        }
+
+        template <typename T>
+        inline const T& get() const
+        {
+            return *data_.cast<T>();
+        }
+
+        template <typename T>
+        inline void set(const T& value)
+        {
+            data_.resize(sizeof(T));
+            memcpy(data_.data(), &value, sizeof(T));
+        }
+
+        inline void set(const bytearray& value) { data_ = value; }
+
+    private:
+        bytearray data_;
+
+    };
+
 }
 
 #endif // TYPES_H

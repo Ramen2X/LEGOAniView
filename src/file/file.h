@@ -3,111 +3,111 @@
 #ifndef FILE_H
 #define FILE_H
 
-#include <fstream>
-
 #include "types.h"
 
 namespace f {
 
-class FileBase
-{
-public:
-  FileBase()
-  {
-  }
+    class FileBase
+    {
+    public:
+        FileBase()
+        {
+        }
 
-  virtual ~FileBase()
-  {
-  }
+        virtual ~FileBase()
+        {
+        }
 
-  enum Mode {
-    Read,
-    Write
-  };
+        enum Mode {
+            Read,
+            Write
+        };
 
-  uint8_t ReadU8();
-  uint16_t ReadU16();
-  uint32_t ReadU32();
-  std::string ReadString();
-  float ReadFloat();
-  bytearray ReadBytes(size_t size);
-  Vector3 ReadVector3();
-  virtual size_t ReadData(void *data, size_t size) = 0;
+        typedef uint64_t pos_t;
 
-  void WriteU8(uint8_t u);
-  void WriteU16(uint16_t u);
-  void WriteU32(uint32_t u);
-  void WriteString(const std::string &s);
-  void WriteBytes(const bytearray &b);
-  void WriteVector3(const Vector3 &b);
-  virtual size_t WriteData(const void *data, size_t size) = 0;
+        uint8_t ReadU8();
+        uint16_t ReadU16();
+        uint32_t ReadU32();
+        std::string ReadString();
+        float ReadFloat();
+        bytearray ReadBytes(pos_t size);
+        Vector3 ReadVector3();
+        virtual pos_t ReadData(void* data, pos_t size) = 0;
 
-  virtual void Close() {}
+        void WriteU8(uint8_t u);
+        void WriteU16(uint16_t u);
+        void WriteU32(uint32_t u);
+        void WriteString(const std::string& s);
+        void WriteBytes(const bytearray& b);
+        void WriteVector3(const Vector3& b);
+        virtual pos_t WriteData(const void* data, pos_t size) = 0;
 
-  enum SeekMode
-  {
-    SeekStart,
-    SeekCurrent,
-    SeekEnd
-  };
+        virtual void Close() {}
 
-  virtual size_t pos() = 0;
-  virtual size_t size() = 0;
-  virtual void seek(size_t p, SeekMode s = SeekStart) = 0;
-  virtual bool atEnd() = 0;
+        enum SeekMode
+        {
+            SeekStart,
+            SeekCurrent,
+            SeekEnd
+        };
 
-};
+        virtual pos_t pos() = 0;
+        virtual pos_t size() = 0;
+        virtual void seek(pos_t p, SeekMode s = SeekStart) = 0;
+        bool atEnd() { return pos() == size(); }
 
-class File : public FileBase
-{
-public:
-  virtual ~File()
-  {
-    Close();
-  }
+    };
 
-  bool Open(const char *c, Mode mode);
+    class File : public FileBase
+    {
+    public:
+        File();
+
+        virtual ~File()
+        {
+            Close();
+        }
+
+        bool Open(const char* c, Mode mode);
 
 #ifdef _WIN32
-  bool Open(const wchar_t *c, Mode mode);
+        bool Open(const wchar_t* c, Mode mode);
 #endif
 
-  virtual size_t pos();
-  virtual size_t size();
-  virtual void seek(size_t p, SeekMode s = SeekStart);
-  virtual bool atEnd();
+        virtual pos_t pos();
+        virtual pos_t size();
+        virtual void seek(pos_t p, SeekMode s = SeekStart);
 
-  virtual void Close();
-  virtual size_t ReadData(void *data, size_t size);
-  virtual size_t WriteData(const void *data, size_t size);
+        virtual void Close();
+        virtual pos_t ReadData(void* data, pos_t size);
+        virtual pos_t WriteData(const void* data, pos_t size);
 
-private:
-  std::fstream m_Stream;
-  Mode m_Mode;
+    private:
+        void* m_Handle;
+        Mode m_Mode;
 
-};
+    };
 
-class MemoryBuffer : public FileBase
-{
-public:
-   MemoryBuffer();
-   MemoryBuffer(const bytearray &data);
+    class MemoryBuffer : public FileBase
+    {
+    public:
+        MemoryBuffer();
+        MemoryBuffer(const bytearray& data);
 
-   virtual size_t pos();
-   virtual size_t size();
-   virtual void seek(size_t p, SeekMode s = SeekStart);
-   virtual bool atEnd();
+        virtual pos_t pos();
+        virtual pos_t size();
+        virtual void seek(pos_t p, SeekMode s = SeekStart);
 
-  const bytearray &data() const { return m_Internal; }
+        const bytearray& data() const { return m_Internal; }
 
-   virtual size_t ReadData(void *data, size_t size);
-   virtual size_t WriteData(const void *data, size_t size);
+        virtual pos_t ReadData(void* data, pos_t size);
+        virtual pos_t WriteData(const void* data, pos_t size);
 
-private:
-  bytearray m_Internal;
-  size_t m_Position;
+    private:
+        bytearray m_Internal;
+        pos_t m_Position;
 
-};
+    };
 
 }
 
