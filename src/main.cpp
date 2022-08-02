@@ -9,6 +9,11 @@ int main(int argc, char* argv[])
 	}
 	else {
 		LEGOAniView av;
+		if (argc > 2) {
+			if (!strcmp(argv[2], "--use-euler")) {
+				av.useEuler = true;
+			}
+		}
 		if (!av.ParseData(argv[1])) {
 			std::cout << Color::Modifier(Color::FG_RED) << "Operation failed." << Color::Modifier(Color::FG_DEFAULT);
 			return 0;

@@ -1,5 +1,3 @@
-// Information about rotation is currently unknown
-
 enum Type {
 	POSITION,
 	ROTATION,
@@ -9,8 +7,10 @@ enum Type {
 
 struct Keyframe {
 	Type type; // Type of the keyframe
+	int num; // Which keyframe number this is
 	short ms; // Time the keyframe is positioned in milliseconds
-	float x_pos; // X position of the component
-	float y_pos; // Y position of the component
-	float z_pos; // Z position of the component
+	float w; // Rotation angle value used in a quaternion
+	float x; // X value of the component
+	float y; // Y value of the component
+	float z; // Z value of the component
 };
