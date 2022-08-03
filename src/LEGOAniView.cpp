@@ -69,7 +69,6 @@ bool LEGOAniView::ParseActors()
 bool LEGOAniView::ParseKeyframes(Actor &actor)
 {
 	int nameLength;
-	short keyframeNum;
 	std::string name;
 
 	// Get length of actor/component name
@@ -82,107 +81,13 @@ bool LEGOAniView::ParseKeyframes(Actor &actor)
 	// Get actor/component name
 	name = std::string(aniFile.ReadBytes(nameLength).data(), nameLength);
 
-	// Amount of keyframes
-	keyframeNum = aniFile.ReadU16();
-
 	// Does this actor/component match the one that was passed?
 	if (actor.name == name) {
 		actorsFound++;
 
-		// Position
-		for (int i = 0; i < keyframeNum; i++) {
-			Keyframe kf{};
-			
-			kf.type = POSITION;
-
-			kf.num = i + 1;
-
-			// Position of this keyframe
-			kf.ms = aniFile.ReadU16();
-
-			// Skip unknown 0x01 value
-			aniFile.seek(2, f::File::SeekCurrent);
-
-			// X Position
-			kf.x = aniFile.ReadFloat();
-
-			// Y Position
-			kf.y = aniFile.ReadFloat();
-
-			// Z Position
-			kf.z = aniFile.ReadFloat();
-
-			// Push this keyframe to vector in actor object
-			actor.keyframes.push_back(kf);
-		}
-		
-		keyframeNum = aniFile.ReadU16();
-
-		// Rotation
-		for (int i = 0; i < keyframeNum; i++) {
-			Keyframe kf{};
-
-			kf.type = ROTATION;
-
-			kf.num = i + 1;
-
-			// Position of this keyframe
-			kf.ms = aniFile.ReadU16();
-
-			// Skip unknown 0x01 value
-			aniFile.seek(2, f::File::SeekCurrent);
-
-			// W (Angle)
-			kf.w = aniFile.ReadFloat();
-
-			// X
-			kf.x = aniFile.ReadFloat();
-
-			// Y
-			kf.y = aniFile.ReadFloat();
-
-			// Z
-			kf.z = aniFile.ReadFloat();
-
-			// Convert from quaternions to euler
-			if (useEuler) {
-				EulerFromQuaternion(kf.x, kf.y, kf.z, kf.w, kf.x, kf.y, kf.z);
-				// We don't need the angle anymore
-				kf.w = 0;
-			}
-
-			// Push this keyframe to vector in actor object
-			actor.keyframes.push_back(kf);
-		}
-
-		keyframeNum = aniFile.ReadU16();
-
-		// Scale
-		for (int i = 0; i < keyframeNum; i++) {
-			Keyframe kf{};
-
-			kf.type = SCALE;
-
-			kf.num = i + 1;
-
-			// Position of this keyframe
-			kf.ms = aniFile.ReadU16();
-
-			// Skip unknown 0x01 value
-			aniFile.seek(2, f::File::SeekCurrent);
-
-			// X
-			kf.x = aniFile.ReadFloat();
-
-			// Y
-			kf.y = aniFile.ReadFloat();
-
-			// Z
-			kf.z = aniFile.ReadFloat();
-
-			// Push this keyframe to vector in actor object
-			actor.keyframes.push_back(kf);
-		}
+		ReadKeyframes(POSITION, actor);
+		ReadKeyframes(ROTATION, actor);
+		ReadKeyframes(SCALE, actor);
 
 		// Skip the unimplemented morph for now
 		keyframeNum = aniFile.ReadU16();
@@ -224,6 +129,50 @@ bool LEGOAniView::ParseKeyframes(Actor &actor)
 		return false;
 	}
 	else return true;
+}
+
+void LEGOAniView::ReadKeyframes(Type type, Actor& actor)
+{
+	// Amount of keyframes of this type
+	keyframeNum = aniFile.ReadU16();
+
+	for (int i = 0; i < keyframeNum; i++) {
+		Keyframe kf{};
+
+		kf.type = type;
+
+		kf.num = i + 1;
+
+		// Position of this keyframe
+		kf.ms = aniFile.ReadU16();
+
+		// Skip unknown 0x01 value
+		aniFile.seek(2, f::File::SeekCurrent);
+
+		if (type == ROTATION) {
+			// W (Angle)
+			kf.w = aniFile.ReadFloat();
+		}
+
+		// X
+		kf.x = aniFile.ReadFloat();
+
+		// Y
+		kf.y = aniFile.ReadFloat();
+
+		// Z
+		kf.z = aniFile.ReadFloat();
+
+		// Convert from quaternions to euler
+		if (type == ROTATION && useEuler) {
+			EulerFromQuaternion(kf.x, kf.y, kf.z, kf.w, kf.x, kf.y, kf.z);
+			// We don't need the angle anymore
+			kf.w = 0;
+		}
+
+		// Push this keyframe to vector in actor object
+		actor.keyframes.push_back(kf);
+	}
 }
 
 void LEGOAniView::EulerFromQuaternion(float xp, float yp, float zp, float wp, float &pitch, float &yaw, float &roll) const

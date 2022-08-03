@@ -19,8 +19,10 @@ public:
 private:
 	int actorsNum;
 	int actorsFound = 0;
+	short keyframeNum;
 	bool ParseActors();
 	bool ParseKeyframes(Actor &actor);
+	void ReadKeyframes(Type type, Actor& actor);
 	void OutputData();
 	void EulerFromQuaternion(float xp, float yp, float zp, float wp, float &pitch, float &yaw, float &roll) const;
 };
