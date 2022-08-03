@@ -244,7 +244,11 @@ void LEGOAniView::OutputData()
 		for (int i2 = 0; i2 < ani.actors[i].keyframes.size(); i2++) {
 			std::cout << Color::Modifier(Color::FG_GREEN) << "\nKeyframe " << ani.actors[i].keyframes[i2].num << " (" << typeNames[ani.actors[i].keyframes[i2].type] << "):\n" << Color::Modifier(Color::FG_DEFAULT);
 
-			std::cout << "Time: " << Color::Modifier(Color::FG_YELLOW) << ani.actors[i].keyframes[i2].ms << " ms\n" << Color::Modifier(Color::FG_DEFAULT);
+			if (useFrames) {
+				std::cout << "Frame: " << Color::Modifier(Color::FG_YELLOW) << (ani.actors[i].keyframes[i2].ms * 0.001) * 60 << "\n" << Color::Modifier(Color::FG_DEFAULT);
+			}
+			else std::cout << "Time: " << Color::Modifier(Color::FG_YELLOW) << ani.actors[i].keyframes[i2].ms << " ms\n" << Color::Modifier(Color::FG_DEFAULT);
+
 			std::cout << "X: " << Color::Modifier(Color::FG_YELLOW) << std::fixed << std::setprecision(8) << ani.actors[i].keyframes[i2].x << "\n" << Color::Modifier(Color::FG_DEFAULT);
 			std::cout << "Y: " << Color::Modifier(Color::FG_YELLOW) << ani.actors[i].keyframes[i2].y << "\n" << Color::Modifier(Color::FG_DEFAULT);
 			std::cout << "Z: " << Color::Modifier(Color::FG_YELLOW) << ani.actors[i].keyframes[i2].z << "\n" << Color::Modifier(Color::FG_DEFAULT);

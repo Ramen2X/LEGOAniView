@@ -15,6 +15,7 @@ public:
 	Ani ani;
 	f::File aniFile;
 	bool useEuler = false;
+	bool useFrames = false;
 	bool ParseData(char* inputFile);
 private:
 	int actorsNum;
