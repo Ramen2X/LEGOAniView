@@ -88,6 +88,8 @@ bool LEGOAniView::ParseKeyframes(Actor &actor)
 	// Does this actor/component match the one that was passed?
 	if (actor.name == name) {
 		actorsFound++;
+
+		// Position
 		for (int i = 0; i < keyframeNum; i++) {
 			Keyframe kf{};
 			
@@ -116,6 +118,7 @@ bool LEGOAniView::ParseKeyframes(Actor &actor)
 		
 		keyframeNum = aniFile.ReadU16();
 
+		// Rotation
 		for (int i = 0; i < keyframeNum; i++) {
 			Keyframe kf{};
 
@@ -152,11 +155,36 @@ bool LEGOAniView::ParseKeyframes(Actor &actor)
 			actor.keyframes.push_back(kf);
 		}
 
-		// Skip the unimplemented types for now; skip scale
 		keyframeNum = aniFile.ReadU16();
-		aniFile.seek(keyframeNum * 16, f::File::SeekCurrent);
 
-		// Skip morph
+		// Scale
+		for (int i = 0; i < keyframeNum; i++) {
+			Keyframe kf{};
+
+			kf.type = SCALE;
+
+			kf.num = i + 1;
+
+			// Position of this keyframe
+			kf.ms = aniFile.ReadU16();
+
+			// Skip unknown 0x01 value
+			aniFile.seek(2, f::File::SeekCurrent);
+
+			// X
+			kf.x = aniFile.ReadFloat();
+
+			// Y
+			kf.y = aniFile.ReadFloat();
+
+			// Z
+			kf.z = aniFile.ReadFloat();
+
+			// Push this keyframe to vector in actor object
+			actor.keyframes.push_back(kf);
+		}
+
+		// Skip the unimplemented morph for now
 		keyframeNum = aniFile.ReadU16();
 		aniFile.seek(keyframeNum * 5, f::File::SeekCurrent);
 
