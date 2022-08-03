@@ -255,6 +255,8 @@ void LEGOAniView::OutputData()
 			if (ani.actors[i].keyframes[i2].type == ROTATION && !useEuler) {
 				std::cout << "W (Angle): " << Color::Modifier(Color::FG_YELLOW) << ani.actors[i].keyframes[i2].w << "\n" << Color::Modifier(Color::FG_DEFAULT);
 			}
+			// To prevent the time/frame count from being ultra-precise
+			std::cout.precision(0);
 		}
 	}
 }
