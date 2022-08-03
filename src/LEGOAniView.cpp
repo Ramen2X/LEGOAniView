@@ -100,18 +100,19 @@ bool LEGOAniView::ParseKeyframes(Actor &actor)
 	}
 	else {
 		// If this is not the actor/component we want, skip to the next one
-		aniFile.seek(keyframeNum * 16, f::File::SeekCurrent);
 		keyframeNum = aniFile.ReadU16();
+		aniFile.seek(keyframeNum * 16, f::File::SeekCurrent);
 
 		// Skip rotation
-		aniFile.seek(keyframeNum * 20, f::File::SeekCurrent);
 		keyframeNum = aniFile.ReadU16();
+		aniFile.seek(keyframeNum * 20, f::File::SeekCurrent);
 
 		// Skip scale
-		aniFile.seek(keyframeNum * 16, f::File::SeekCurrent);
 		keyframeNum = aniFile.ReadU16();
+		aniFile.seek(keyframeNum * 16, f::File::SeekCurrent);
 
 		// Skip morph
+		keyframeNum = aniFile.ReadU16();
 		aniFile.seek(keyframeNum * 5, f::File::SeekCurrent);
 
 		// Skip ahead to next entry
