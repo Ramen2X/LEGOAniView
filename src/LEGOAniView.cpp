@@ -19,7 +19,7 @@ bool LEGOAniView::ParseData(char* inputFile)
 		return true;
 	}
 	else {
-		std::cout << "Could not find the specified file.\n";
+		std::cout << "\nCould not find the specified file.\n";
 		return false;
 	}
 }
