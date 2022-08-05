@@ -3,8 +3,13 @@
 
 int main(int argc, char* argv[])
 {
+	std::string usageInfo = "\nUsage: LEGOAniView *.ani [options]\n\nOptions:\n"
+		"--use-euler: Prints rotation information in Euler angles as opposed to quaternions\n"
+		"--use - frames: Prints time value of keyframe as a frame value(relative to 60fps) as opposed to milliseconds\n"
+		"--help: Shows these usage details\n";
+
 	if (argc < 2) {
-		std::cout << "\nUsage: LEGOAniView *.ani [options]\n\nOptions:\n--use-euler: Prints rotation information in Euler angles as opposed to quaternions\n--use-frames: Prints time value of keyframe as a frame value (relative to 60fps) as opposed to milliseconds\n--help: Shows these usage details\n\n";
+		std::cout << usageInfo << "\n";
 		std::cout << Color::Modifier(Color::FG_RED) << "No file specified. Exiting...\n" << Color::Modifier(Color::FG_DEFAULT);
 		return 0;
 	}
@@ -21,7 +26,7 @@ int main(int argc, char* argv[])
 			}
 		}
 		if (!strcmp(argv[1], "--help")) {
-			std::cout << "\nUsage: LEGOAniView *.ani [options]\n\nOptions:\n--use-euler: Prints rotation information in Euler angles as opposed to quaternions\n--use-frames: Prints time value of keyframe as a frame value (relative to 60fps) as opposed to milliseconds\n--help: Shows these usage details\n";
+			std::cout << usageInfo;
 			return 0;
 		}
 		if (!av.ParseData(argv[1])) {
