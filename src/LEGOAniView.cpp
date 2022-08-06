@@ -1,5 +1,5 @@
 ﻿#include "LEGOAniView.h"
-#include "./misc/Color.h"
+#include "./misc/color.h"
 
 bool LEGOAniView::ParseData(char* inputFile)
 {
@@ -66,7 +66,7 @@ bool LEGOAniView::ParseActors()
 	return true;
 }
 
-bool LEGOAniView::ParseKeyframes(Actor &actor)
+bool LEGOAniView::ParseKeyframes(Component &component)
 {
 	int nameLength;
 	std::string name;
@@ -82,12 +82,12 @@ bool LEGOAniView::ParseKeyframes(Actor &actor)
 	name = std::string(aniFile.ReadBytes(nameLength).data(), nameLength);
 
 	// Does this actor/component match the one that was passed?
-	if (actor.name == name) {
+	if (component.name == name) {
 		actorsFound++;
 
-		ReadKeyframes(POSITION, actor);
-		ReadKeyframes(ROTATION, actor);
-		ReadKeyframes(SCALE, actor);
+		ReadKeyframes(POSITION, component);
+		ReadKeyframes(ROTATION, component);
+		ReadKeyframes(SCALE, component);
 
 		// Skip the unimplemented morph for now
 		keyframeNum = aniFile.ReadU16();
@@ -126,13 +126,13 @@ bool LEGOAniView::ParseKeyframes(Actor &actor)
 
 	// Recurse only if we have not found all actors
 	if (actorsFound != actorsNum) {
-		ParseKeyframes(actor);
+		ParseKeyframes(component);
 		return false;
 	}
 	else return true;
 }
 
-void LEGOAniView::ReadKeyframes(Type type, Actor& actor)
+void LEGOAniView::ReadKeyframes(Type type, Component& component)
 {
 	// Amount of keyframes of this type
 	keyframeNum = aniFile.ReadU16();
@@ -172,7 +172,7 @@ void LEGOAniView::ReadKeyframes(Type type, Actor& actor)
 		}
 
 		// Push this keyframe to vector in actor object
-		actor.keyframes.push_back(kf);
+		component.keyframes.push_back(kf);
 	}
 }
 

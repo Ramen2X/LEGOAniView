@@ -1,7 +1,5 @@
-#include "Component.h"
+#include "component.h"
 
-struct Actor {
-	std::string name; // Name of the actor
+struct Actor : public Component {
 	std::vector<Component> components; // Components of the actor
-	std::vector<Keyframe> keyframes; // Keyframes of the actor
 };

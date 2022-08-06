@@ -5,7 +5,7 @@
 #include <fstream>
 
 #include "./file/file.h"
-#include "./ani/Ani.h"
+#include "./ani/ani.h"
 
 #define M_PI 3.14159265358979323846
 #define M_PI_2 1.57079632679489661923
@@ -22,8 +22,8 @@ private:
 	int actorsFound = 0;
 	short keyframeNum;
 	bool ParseActors();
-	bool ParseKeyframes(Actor &actor);
-	void ReadKeyframes(Type type, Actor& actor);
+	bool ParseKeyframes(Component &component);
+	void ReadKeyframes(Type type, Component& component);
 	void OutputData();
 	void EulerFromQuaternion(float xp, float yp, float zp, float wp, float &pitch, float &yaw, float &roll) const;
 };

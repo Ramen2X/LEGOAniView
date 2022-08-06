@@ -1,4 +1,4 @@
-#include "Actor.h"
+#include "actor.h"
 	
 struct Ani {
 	std::string sceneName; // Name of the scene

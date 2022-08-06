@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
 
-#include "Keyframe.h"
+#include "keyframe.h"
 
 struct Component {
 	std::string name; // Name of the component
